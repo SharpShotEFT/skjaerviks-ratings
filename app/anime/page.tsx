@@ -15,10 +15,7 @@ export default function AnimePage() {
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({ title: '', overallRating: '', image: null as File | null });
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchSeries();
-    }, []);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const fetchSeries = async () => {
         const res = await fetch('/api/series?type=ANIME');
@@ -26,6 +23,19 @@ export default function AnimePage() {
         setSeries(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const res = await fetch('/api/auth/check');
+                const data = await res.json();
+                setIsAuthenticated(data.isAuthenticated);
+            } catch (e) { console.error(e); }
+        };
+
+        fetchSeries();
+        checkAuth();
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -70,9 +80,11 @@ export default function AnimePage() {
         <div style={{ padding: '2rem 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1>Anime</h1>
-                <button className="btn" onClick={() => setShowForm(!showForm)}>
-                    {showForm ? 'Cancel' : 'Add Anime'}
-                </button>
+                {isAuthenticated && (
+                    <button className="btn" onClick={() => setShowForm(!showForm)}>
+                        {showForm ? 'Cancel' : 'Add Anime'}
+                    </button>
+                )}
             </div>
 
             {showForm && (

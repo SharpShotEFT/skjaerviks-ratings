@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -44,20 +45,14 @@ interface SeriesDetails {
     seasons: Season[];
 }
 
-import { useParams } from 'next/navigation';
-
 export default function SeriesDetailsPage() {
     const params = useParams();
-    // params.id might be string or string[], cast to string for safety in this context
     const id = params.id as string;
     const [series, setSeries] = useState<SeriesDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({ seasonNumber: '', episodeNumber: '', title: '', rating: '' });
-
-    useEffect(() => {
-        fetchSeriesDetails();
-    }, []);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const fetchSeriesDetails = async () => {
         const res = await fetch(`/api/series/${id}`);
@@ -67,6 +62,19 @@ export default function SeriesDetailsPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const res = await fetch('/api/auth/check');
+                const data = await res.json();
+                setIsAuthenticated(data.isAuthenticated);
+            } catch (e) { console.error(e); }
+        };
+
+        fetchSeriesDetails();
+        checkAuth();
+    }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -133,9 +141,11 @@ export default function SeriesDetailsPage() {
                     <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
                         Overall Rating: <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{series.overallRating}</span>
                     </div>
-                    <button className="btn" onClick={() => setShowForm(!showForm)}>
-                        {showForm ? 'Cancel' : 'Add Episode'}
-                    </button>
+                    {isAuthenticated && (
+                        <button className="btn" onClick={() => setShowForm(!showForm)}>
+                            {showForm ? 'Cancel' : 'Add Episode'}
+                        </button>
+                    )}
                 </div>
             </div>
 

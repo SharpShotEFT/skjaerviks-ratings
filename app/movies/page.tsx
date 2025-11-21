@@ -15,17 +15,27 @@ export default function MoviesPage() {
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({ title: '', rating: '', image: null as File | null });
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchMovies();
-    }, []);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const fetchMovies = async () => {
-        const res = await fetch('/api/movies');
+        const res = await fetch('/api/movies', { cache: 'no-store' });
         const data = await res.json();
         setMovies(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const res = await fetch('/api/auth/check');
+                const data = await res.json();
+                setIsAuthenticated(data.isAuthenticated);
+            } catch (e) { console.error(e); }
+        };
+
+        fetchMovies();
+        checkAuth();
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -36,42 +46,59 @@ export default function MoviesPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        let imagePath = null;
-        if (formData.image) {
-            const uploadData = new FormData();
-            uploadData.append('file', formData.image);
-            const uploadRes = await fetch('/api/upload', {
-                method: 'POST',
-                body: uploadData,
-            });
-            const uploadJson = await uploadRes.json();
-            if (uploadJson.success) {
-                imagePath = uploadJson.path;
+        try {
+            let imagePath = null;
+            if (formData.image) {
+                const uploadData = new FormData();
+                uploadData.append('file', formData.image);
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadData,
+                });
+                const uploadJson = await uploadRes.json();
+                if (uploadJson.success) {
+                    imagePath = uploadJson.path;
+                } else {
+                    alert('Failed to upload image');
+                    return;
+                }
             }
+
+            const response = await fetch('/api/movies', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: formData.title,
+                    rating: formData.rating,
+                    image: imagePath,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Failed to save movie: ${errorData.error || 'Unknown error'}`);
+                return;
+            }
+
+            // Success - close form and refresh
+            setShowForm(false);
+            setFormData({ title: '', rating: '', image: null });
+            await fetchMovies();
+        } catch (error) {
+            console.error('Error creating movie:', error);
+            alert('Failed to create movie. Please try again.');
         }
-
-        await fetch('/api/movies', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title: formData.title,
-                rating: formData.rating,
-                image: imagePath,
-            }),
-        });
-
-        setShowForm(false);
-        setFormData({ title: '', rating: '', image: null });
-        fetchMovies();
     };
 
     return (
         <div style={{ padding: '2rem 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1>Movies</h1>
-                <button className="btn" onClick={() => setShowForm(!showForm)}>
-                    {showForm ? 'Cancel' : 'Add Movie'}
-                </button>
+                {isAuthenticated && (
+                    <button className="btn" onClick={() => setShowForm(!showForm)}>
+                        {showForm ? 'Cancel' : 'Add Movie'}
+                    </button>
+                )}
             </div>
 
             {showForm && (

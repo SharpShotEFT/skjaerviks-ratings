@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     const movies = await prisma.movie.findMany({
         orderBy: { createdAt: 'desc' },
@@ -13,6 +15,8 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { title, image, rating } = body;
 
+        console.log('Creating movie:', { title, image, rating });
+
         const movie = await prisma.movie.create({
             data: {
                 title,
@@ -21,8 +25,13 @@ export async function POST(request: Request) {
             },
         });
 
+        console.log('Movie created successfully:', movie);
         return NextResponse.json(movie);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to create movie' }, { status: 500 });
+        console.error('Error creating movie:', error);
+        return NextResponse.json({
+            error: 'Failed to create movie',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        }, { status: 500 });
     }
 }
