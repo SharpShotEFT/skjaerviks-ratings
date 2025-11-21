@@ -143,13 +143,23 @@ export default function MoviesPage() {
             ) : (
                 <div className="grid">
                     {movies.map((movie) => (
-                        <div key={movie.id} className="card">
-                            <img src={movie.image || '/placeholder.png'} alt={movie.title} className="card-image" />
-                            <div className="card-content">
-                                <h3 className="card-title">{movie.title}</h3>
-                                {movie.rating && <div className="rating-badge">{movie.rating}</div>}
+                        isAuthenticated ? (
+                            <Link key={movie.id} href={`/movies/${movie.id}`} className="card" style={{ cursor: 'pointer' }}>
+                                <img src={movie.image || '/placeholder.png'} alt={movie.title} className="card-image" />
+                                <div className="card-content">
+                                    <h3 className="card-title">{movie.title}</h3>
+                                    {movie.rating && <div className="rating-badge">{movie.rating}</div>}
+                                </div>
+                            </Link>
+                        ) : (
+                            <div key={movie.id} className="card">
+                                <img src={movie.image || '/placeholder.png'} alt={movie.title} className="card-image" />
+                                <div className="card-content">
+                                    <h3 className="card-title">{movie.title}</h3>
+                                    {movie.rating && <div className="rating-badge">{movie.rating}</div>}
+                                </div>
                             </div>
-                        </div>
+                        )
                     ))}
                 </div>
             )}
