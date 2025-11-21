@@ -44,7 +44,12 @@ interface SeriesDetails {
     seasons: Season[];
 }
 
-export default function SeriesDetailsPage({ params }: { params: { id: string } }) {
+import { useParams } from 'next/navigation';
+
+export default function SeriesDetailsPage() {
+    const params = useParams();
+    // params.id might be string or string[], cast to string for safety in this context
+    const id = params.id as string;
     const [series, setSeries] = useState<SeriesDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -55,7 +60,7 @@ export default function SeriesDetailsPage({ params }: { params: { id: string } }
     }, []);
 
     const fetchSeriesDetails = async () => {
-        const res = await fetch(`/api/series/${params.id}`);
+        const res = await fetch(`/api/series/${id}`);
         if (res.ok) {
             const data = await res.json();
             setSeries(data);
@@ -65,7 +70,7 @@ export default function SeriesDetailsPage({ params }: { params: { id: string } }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await fetch(`/api/series/${params.id}/episodes`, {
+        await fetch(`/api/series/${id}/episodes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData),

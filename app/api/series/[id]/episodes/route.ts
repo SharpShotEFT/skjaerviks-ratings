@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const seriesId = parseInt(params.id);
+        const { id: idString } = await params;
+        const seriesId = parseInt(idString);
         const body = await request.json();
         const { seasonNumber, episodeNumber, title, rating } = body;
 
