@@ -13,6 +13,8 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
 
+        console.log('Submitting login...');
+
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -21,11 +23,14 @@ export default function LoginPage() {
             });
 
             const data = await res.json();
+            console.log('Login response:', { status: res.status, data });
 
             if (res.ok && data.success) {
+                console.log('Login successful, redirecting...');
                 // Login successful - force full page reload to ensure auth state updates
                 window.location.href = '/';
             } else {
+                console.log('Login failed');
                 setError(data.message || 'Invalid credentials');
             }
         } catch (error) {
