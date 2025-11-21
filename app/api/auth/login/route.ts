@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
         cookieStore.set('auth', 'true', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: false, // Set to false for HTTP (non-HTTPS) deployments
             maxAge: 60 * 60 * 24 * 7, // 1 week
             path: '/',
             sameSite: 'lax',
