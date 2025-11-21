@@ -308,3 +308,20 @@ main {
     gap: 1rem;
   }
 }
+
+/* Version Badge */
+.version-badge {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--surface);
+  border-radius: 4px;
+  border: 1px solid var(--glass-border);
+  font-family: monospace;
+  pointer-events: none;
+  z-index: 50;
+}
