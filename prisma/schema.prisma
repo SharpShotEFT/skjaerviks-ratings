@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Movie {
+  id        Int      @id @default(autoincrement())
+  title     String
+  image     String?
+  rating    Float?
+  createdAt DateTime @default(now())
+}
+
+model Series {
+  id            Int      @id @default(autoincrement())
+  title         String
+  image         String?
+  type          String   @default("SERIES") // "SERIES" or "ANIME"
+  overallRating Float?
+  seasons       Season[]
+  createdAt     DateTime @default(now())
+}
+
+model Season {
+  id           Int       @id @default(autoincrement())
+  seasonNumber Int
+  seriesId     Int
+  series       Series    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  episodes     Episode[]
+}
+
+model Episode {
+  id            Int    @id @default(autoincrement())
+  episodeNumber Int
+  title         String?
+  rating        Float?
+  seasonId      Int
+  season        Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+}
